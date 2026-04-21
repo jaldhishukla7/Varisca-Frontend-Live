@@ -3,7 +3,8 @@
 // Centralized HTTP client for backend API calls with JWT auth.
 
 /** Fallback when no env is set in production (custom domain; avoid *.railway.app DNS issues on some ISPs). */
-const DEFAULT_PROD_BACKEND = 'https://api.varisca.in/api';
+// const DEFAULT_PROD_BACKEND = 'https://api.varisca.in/api';
+const DEFAULT_PROD_BACKEND = 'https://varisca-backend-live.vercel.app/api';
 
 function stripQuotes(s: string): string {
   return s.replace(/^['"]+|['"]+$/g, '').trim();

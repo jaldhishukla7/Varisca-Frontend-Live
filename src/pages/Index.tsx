@@ -6,7 +6,6 @@ import { CollectionBanner } from '@/components/home/CollectionBanner';
 import { FeaturesSection } from '@/components/home/FeaturesSection';
 import { RecentlyViewed } from '@/components/home/RecentlyViewed';
 import { NewsletterSignup } from '@/components/home/NewsletterSignup';
-import { getApiBase } from '../lib/api/client';
 
 const Index = () => {
   const [showCurtain, setShowCurtain] = useState(false);
@@ -24,11 +23,6 @@ const Index = () => {
 
   return (
     <main className="relative overflow-hidden">
-
-      {/* ── DEBUG BAR — remove after testing ── */}
-      <div style={{position:'fixed', bottom:0, left:0, background:'red', color:'white', fontSize:'10px', zIndex:9999, padding:'4px', wordBreak:'break-all'}}>
-        API: {getApiBase()}
-      </div>
       <AnimatePresence>
         {showCurtain && (
           <motion.div

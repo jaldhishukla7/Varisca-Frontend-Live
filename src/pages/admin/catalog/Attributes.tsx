@@ -248,7 +248,19 @@ const Attributes = () => {
           searchPlaceholder="Search attributes..."
           searchFields={['name']}
           onRowClick={openDialog}
-          bulkActions={[...]}
+          bulkActions={[
+            {
+            label: 'Delete',
+            icon: <Trash2 className="h-3.5 w-3.5 mr-1" />,
+            variant: 'destructive' as const,
+            confirmTitle: 'Delete',
+            confirmMessage: 'Are you sure you want to delete?',
+            onClick: async (ids) => {
+              await api.post('/attributes/bulk-delete', { ids });
+              load();
+            },
+          },
+        ]}
           emptyMessage="No attributes"
           emptyIcon={<SlidersHorizontal className="h-10 w-10" />}
         />

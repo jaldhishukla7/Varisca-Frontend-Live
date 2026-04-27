@@ -218,30 +218,12 @@ const Attributes = () => {
           <Plus className="h-4 w-4" /> Add Attribute
         </Button>
       </div>
-      {/* <DataTable
-        data={attrs}
-        columns={columns}
-        searchPlaceholder="Search attributes..."
-        searchFields={['name']}
-        onRowClick={openDialog}
-        bulkActions={[
-          {
-            label: 'Delete',
-            icon: <Trash2 className="h-3.5 w-3.5 mr-1" />,
-            variant: 'destructive' as const,
-            confirmTitle: 'Delete',
-            confirmMessage: 'Are you sure you want to delete?',
-            onClick: async (ids) => {
-              await api.post('/attributes/bulk-delete', { ids });
-              load();
-            },
-          },
-        ]}
-        emptyMessage="No attributes"
-        emptyIcon={<SlidersHorizontal className="h-10 w-10" />}
-      /> */}
-
-      <div className="relative border rounded-md">
+      {loading ? (
+        <div className="flex h-64 items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <span className="sr-only">Loading...</span>
+        </div>
+      ) : (
         <DataTable
           data={attrs}
           columns={columns}
@@ -250,28 +232,21 @@ const Attributes = () => {
           onRowClick={openDialog}
           bulkActions={[
             {
-            label: 'Delete',
-            icon: <Trash2 className="h-3.5 w-3.5 mr-1" />,
-            variant: 'destructive' as const,
-            confirmTitle: 'Delete',
-            confirmMessage: 'Are you sure you want to delete?',
-            onClick: async (ids) => {
-              await api.post('/attributes/bulk-delete', { ids });
-              load();
+              label: 'Delete',
+              icon: <Trash2 className="h-3.5 w-3.5 mr-1" />,
+              variant: 'destructive' as const,
+              confirmTitle: 'Delete',
+              confirmMessage: 'Are you sure you want to delete?',
+              onClick: async (ids) => {
+                await api.post('/attributes/bulk-delete', { ids });
+                load();
+              },
             },
-          },
-        ]}
+          ]}
           emptyMessage="No attributes"
           emptyIcon={<SlidersHorizontal className="h-10 w-10" />}
         />
-
-        {loading && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/70">
-            <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
-            <p className="text-sm text-muted-foreground">Please wait...</p>
-          </div>
-        )}
-      </div>
+      )}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>

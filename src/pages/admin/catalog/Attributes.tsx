@@ -9,7 +9,7 @@ import { SlidersHorizontal, Plus, Pencil, Trash2 } from 'lucide-react';
 import { api } from '@/lib/api/client';
 import { toast } from 'sonner';
 import type { CatalogCategoryRow } from '@/lib/admin/catalogOptions';
-import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { Loader2 } from "lucide-react";
 
 const SCOPE_NONE = '__none__';
 
@@ -205,8 +205,6 @@ const Attributes = () => {
     },
   ];
 
-  if (loading) return <LoadingSpinner />;
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -220,7 +218,7 @@ const Attributes = () => {
           <Plus className="h-4 w-4" /> Add Attribute
         </Button>
       </div>
-      <DataTable
+      {/* <DataTable
         data={attrs}
         columns={columns}
         searchPlaceholder="Search attributes..."
@@ -241,7 +239,27 @@ const Attributes = () => {
         ]}
         emptyMessage="No attributes"
         emptyIcon={<SlidersHorizontal className="h-10 w-10" />}
-      />
+      /> */}
+
+      <div className="relative border rounded-md">
+        <DataTable
+          data={attrs}
+          columns={columns}
+          searchPlaceholder="Search attributes..."
+          searchFields={['name']}
+          onRowClick={openDialog}
+          bulkActions={[...]}
+          emptyMessage="No attributes"
+          emptyIcon={<SlidersHorizontal className="h-10 w-10" />}
+        />
+
+        {loading && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/70">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
+            <p className="text-sm text-muted-foreground">Please wait...</p>
+          </div>
+        )}
+      </div>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>

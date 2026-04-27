@@ -9,6 +9,7 @@ import { SlidersHorizontal, Plus, Pencil, Trash2 } from 'lucide-react';
 import { api } from '@/lib/api/client';
 import { toast } from 'sonner';
 import type { CatalogCategoryRow } from '@/lib/admin/catalogOptions';
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
 const SCOPE_NONE = '__none__';
 
@@ -28,6 +29,7 @@ const Attributes = () => {
   const [categories, setCategories] = useState<CatalogCategoryRow[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Attribute | null>(null);
+  const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
     name: '',
     type: 'text',
@@ -69,10 +71,22 @@ const Attributes = () => {
     }
   };
 
+  const loadInitialData = async () => {
+    setLoading(true);
+    try {
+      await Promise.all([load(), loadCategories()]);
+    } catch (error) {
+      console.error('Failed to load initial data', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    load();
-    loadCategories();
+    loadInitialData();
   }, []);
+
+
 
   const openDialog = (a?: Attribute) => {
     if (a) {
@@ -190,6 +204,8 @@ const Attributes = () => {
       ),
     },
   ];
+
+  if (loading) return <LoadingSpinner />;
 
   return (
     <div className="space-y-6">

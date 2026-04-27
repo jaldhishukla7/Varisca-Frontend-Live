@@ -7,7 +7,8 @@
   try {
     var h = location.hostname;
     if (h === 'varisca.in' || h === 'www.varisca.in') {
-      window.__VARISCA_API_BASE__ = 'https://api.varisca.in/api';
+      // window.__VARISCA_API_BASE__ = 'https://api.varisca.in/api';
+      window.__VARISCA_API_BASE__ = 'https://varisca-backend-live.vercel.app/api';
     }
   } catch (e) { /* ignore */ }
 })();

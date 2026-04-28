@@ -79,6 +79,26 @@ const Inventory = () => {
     ) },
   ];
 
+  const exportColumns = [
+    { header: 'Product', accessor: 'Product' as const },
+    { header: 'SKU', accessor: 'SKU' as const },
+    { header: 'Category', accessor: 'Category' as const },
+    { header: 'Stock', accessor: 'Stock' as const },
+    { header: 'Price', accessor: 'Price' as const },
+  ];
+
+  const handleExport = () => {
+    const exportData = items.map(i => ({
+      Product: i.name,
+      SKU: i.sku,
+      Category: i.category,
+      Stock: i.inventory,
+      Price: i.price,
+    }));
+
+    exportToCsv(exportData, exportColumns, 'inventory');
+  };
+
   const statCards = [
     { label: 'Total Products', value: stats.total },
     { label: 'Total Units', value: stats.total_units },
@@ -92,7 +112,7 @@ const Inventory = () => {
         <div><h1 className="text-2xl font-bold tracking-tight">Inventory</h1><p className="text-muted-foreground">Stock levels and adjustments</p></div>
         <div className="flex gap-2">
           <Button onClick={() => setAddOpen(true)} className="gap-2"><Plus className="h-4 w-4" /> Add inventory</Button>
-          <Button variant="outline" onClick={() => exportToCsv(items.map(i => ({ Product: i.name, SKU: i.sku, Category: i.category, Stock: i.inventory, Price: i.price })), 'inventory')} className="gap-2"><Download className="h-4 w-4" /> Export</Button>
+          <Button variant="outline" onClick={handleExport} className="gap-2"><Download className="h-4 w-4" /> Export</Button>
         </div>
       </div>
       <div className="grid grid-cols-4 gap-4">{statCards.map(s => (<div key={s.label} className="rounded-xl border border-border/50 bg-card/50 p-4"><p className="text-xs text-muted-foreground">{s.label}</p><p className={`text-2xl font-bold ${s.color || ''}`}>{s.value}</p></div>))}</div>

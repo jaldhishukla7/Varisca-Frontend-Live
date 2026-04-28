@@ -6,6 +6,7 @@ import { useProducts } from '@/hooks/useProducts';
 import type { Product } from '@/lib/data';
 import { TrendingCollectionCard } from '@/components/home/TrendingCollectionCard';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton'; // ← add this import
 
 function pickTshirts(products: Product[]): Product[] {
   const isTshirt = (p: Product) => /tshirt|t-?shirt|tee/i.test((p.subcategory || '').trim());
@@ -29,6 +30,25 @@ function pickKurtis(products: Product[]): Product[] {
     .slice(0, 4);
 }
 
+// ─── NEW: skeleton that mirrors the real card grid ────────────────────────
+const SkeletonSection = () => (
+  <div>
+    <div className="mb-6 flex justify-center">
+      <Skeleton className="h-5 w-24 rounded" />
+    </div>
+    <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4 lg:gap-6">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="flex flex-col gap-3">
+          <Skeleton className="aspect-[3/4] w-full rounded-xl" />
+          <Skeleton className="h-4 w-3/4 rounded" />
+          <Skeleton className="h-4 w-1/3 rounded" />
+        </div>
+      ))}
+    </div>
+  </div>
+);
+// ─────────────────────────────────────────────────────────────────────────
+
 export const TrendingProducts = () => {
   const { data: products, isLoading } = useProducts();
 
@@ -37,9 +57,7 @@ export const TrendingProducts = () => {
     return { tshirts: pickTshirts(list), kurtis: pickKurtis(list) };
   }, [products]);
 
-  if (isLoading) {
-    return <div className="py-24 text-center">Loading Trending Products...</div>;
-  }
+  // ← REMOVED: the early return that caused the layout jump
 
   return (
     <section className="py-16 md:py-24 bg-background">
@@ -63,35 +81,45 @@ export const TrendingProducts = () => {
         </motion.div>
 
         <div className="space-y-14">
-          <div>
-            <h3 className="mb-6 text-center text-base font-semibold tracking-tight md:text-lg">
-              T-Shirts
-            </h3>
-            {tshirts.length === 0 ? (
-              <p className="text-center text-sm text-muted-foreground">No t-shirt listings yet.</p>
-            ) : (
-              <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4 lg:gap-6">
-                {tshirts.map((product) => (
-                  <TrendingCollectionCard key={product.id} product={product} />
-                ))}
+          {isLoading ? (
+            // ← CHANGED: text → shimmer skeletons matching the real grid
+            <>
+              <SkeletonSection />
+              <SkeletonSection />
+            </>
+          ) : (
+            <>
+              <div>
+                <h3 className="mb-6 text-center text-base font-semibold tracking-tight md:text-lg">
+                  T-Shirts
+                </h3>
+                {tshirts.length === 0 ? (
+                  <p className="text-center text-sm text-muted-foreground">No t-shirt listings yet.</p>
+                ) : (
+                  <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4 lg:gap-6">
+                    {tshirts.map((product) => (
+                      <TrendingCollectionCard key={product.id} product={product} />
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
 
-          <div>
-            <h3 className="mb-6 text-center text-base font-semibold tracking-tight md:text-lg">
-              Kurtis
-            </h3>
-            {kurtis.length === 0 ? (
-              <p className="text-center text-sm text-muted-foreground">No kurti listings yet.</p>
-            ) : (
-              <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4 lg:gap-6">
-                {kurtis.map((product) => (
-                  <TrendingCollectionCard key={product.id} product={product} />
-                ))}
+              <div>
+                <h3 className="mb-6 text-center text-base font-semibold tracking-tight md:text-lg">
+                  Kurtis
+                </h3>
+                {kurtis.length === 0 ? (
+                  <p className="text-center text-sm text-muted-foreground">No kurti listings yet.</p>
+                ) : (
+                  <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4 lg:gap-6">
+                    {kurtis.map((product) => (
+                      <TrendingCollectionCard key={product.id} product={product} />
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </>
+          )}
         </div>
       </div>
     </section>

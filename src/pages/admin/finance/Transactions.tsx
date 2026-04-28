@@ -4,15 +4,17 @@ import { Button } from '@/components/ui/button';
 import { ArrowDownUp, Download } from 'lucide-react';
 import { exportToCsv } from '@/lib/admin/utils/export';
 import { api } from '@/lib/api/client';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface Transaction { id: string; order_number: string; customer_name: string; amount: number; method: string; status: string; type: string; created_at: string; }
 interface TxnStats { total_revenue: string; total_transactions: string; pending_amount: string; total_refunds: string; }
 
 const Transactions = () => {
   const [txns, setTxns] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<TxnStats>({ total_revenue: '0', total_transactions: '0', pending_amount: '0', total_refunds: '0' });
 
-  const load = async () => { try { const [t, s] = await Promise.all([api.get<{data: Transaction[]}>('/finance/transactions'), api.get<TxnStats>('/finance/transactions/stats')]); setTxns(t.data); setStats(s); } catch {} };
+  const load = async () => { setLoading(true); try { const [t, s] = await Promise.all([api.get<{data: Transaction[]}>('/finance/transactions'), api.get<TxnStats>('/finance/transactions/stats')]); setTxns(t.data); setStats(s); } catch {} finally { setLoading(false); } };
   useEffect(() => { load(); }, []);
 
   const columns: Column<Transaction>[] = [
@@ -39,7 +41,13 @@ const Transactions = () => {
         <Button variant="outline" onClick={() => exportToCsv(txns.map(t => ({ Order: t.order_number, Customer: t.customer_name, Amount: t.amount, Method: t.method, Type: t.type, Status: t.status })), 'transactions')} className="gap-2"><Download className="h-4 w-4" /> Export</Button>
       </div>
       <div className="grid grid-cols-4 gap-4">{statCards.map(s => (<div key={s.label} className="rounded-xl border border-border/50 bg-card/50 p-4"><p className="text-xs text-muted-foreground">{s.label}</p><p className="text-2xl font-bold">{s.value}</p></div>))}</div>
-      <DataTable data={txns} columns={columns} searchPlaceholder="Search transactions..." searchFields={['order_number', 'customer_name']} emptyMessage="No transactions" emptyIcon={<ArrowDownUp className="h-10 w-10" />} />
+      <div className="rounded-md border p-4">
+        {loading ? (
+          <LoadingSpinner />
+        ) : (
+          <DataTable data={txns} columns={columns} searchPlaceholder="Search transactions..." searchFields={['order_number', 'customer_name']} emptyMessage="No transactions" emptyIcon={<ArrowDownUp className="h-10 w-10" />} />
+        )}
+      </div>
     </div>
   );
 };

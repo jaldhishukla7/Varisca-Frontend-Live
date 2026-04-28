@@ -8,16 +8,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Mail, Plus, Pencil, Trash2, Download } from 'lucide-react';
 import { exportToCsv } from '@/lib/admin/utils/export';
 import { api } from '@/lib/api/client';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface Campaign { id: string; name: string; subject: string; body: string; recipient_count: number; status: string; scheduled_date: string | null; sent_date: string | null; open_rate: number; click_rate: number; }
 
 const EmailCampaigns = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Campaign | null>(null);
   const [form, setForm] = useState({ name: '', subject: '', body: '', recipient_count: '', status: 'draft' });
 
-  const load = async () => { try { const res = await api.get<{data: Campaign[]}>('/marketing/campaigns'); setCampaigns(res.data); } catch {} };
+  const load = async () => { setLoading(true); try { const res = await api.get<{data: Campaign[]}>('/marketing/campaigns'); setCampaigns(res.data); } catch {} finally { setLoading(false); } };
   useEffect(() => { load(); }, []);
 
   const openDialog = (c?: Campaign) => { if (c) { setEditing(c); setForm({ name: c.name, subject: c.subject, body: c.body, recipient_count: String(c.recipient_count), status: c.status }); } else { setEditing(null); setForm({ name: '', subject: '', body: '', recipient_count: '', status: 'draft' }); } setDialogOpen(true); };
@@ -41,9 +43,15 @@ const EmailCampaigns = () => {
           <Button onClick={() => openDialog()} className="gap-2"><Plus className="h-4 w-4" /> New Campaign</Button>
         </div>
       </div>
-      <DataTable data={campaigns} columns={columns} searchPlaceholder="Search campaigns..." searchFields={['name', 'subject']} onRowClick={openDialog}
-        bulkActions={[{ label: 'Delete', icon: <Trash2 className="h-3.5 w-3.5 mr-1" />, variant: 'destructive' as const, confirmTitle: 'Delete', confirmMessage: 'Are you sure you want to delete?', onClick: async (ids) => { await api.post('/marketing/campaigns/bulk-delete', { ids }); load(); } }]}
-        emptyMessage="No campaigns" emptyIcon={<Mail className="h-10 w-10" />} />
+      <div className="rounded-md border p-4">
+        {loading ? (
+          <LoadingSpinner />
+        ) : (
+          <DataTable data={campaigns} columns={columns} searchPlaceholder="Search campaigns..." searchFields={['name', 'subject']} onRowClick={openDialog}
+            bulkActions={[{ label: 'Delete', icon: <Trash2 className="h-3.5 w-3.5 mr-1" />, variant: 'destructive' as const, confirmTitle: 'Delete', confirmMessage: 'Are you sure you want to delete?', onClick: async (ids) => { await api.post('/marketing/campaigns/bulk-delete', { ids }); load(); } }]}
+            emptyMessage="No campaigns" emptyIcon={<Mail className="h-10 w-10" />} />
+        )}
+      </div>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent><DialogHeader><DialogTitle>{editing ? 'Edit Campaign' : 'New Campaign'}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-4">

@@ -6,16 +6,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Switch } from '@/components/ui/switch';
 import { MapPin, Plus, Pencil, Trash2 } from 'lucide-react';
 import { api } from '@/lib/api/client';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface Zone { id: string; name: string; pin_codes_from: string; pin_codes_to: string; state: string; delivery_days: number; is_active: boolean; }
 
 const DeliveryZones = () => {
   const [zones, setZones] = useState<Zone[]>([]);
+  const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Zone | null>(null);
   const [form, setForm] = useState({ name: '', pin_codes_from: '', pin_codes_to: '', state: 'Multiple', delivery_days: '3', is_active: true });
 
-  const load = async () => { try { const res = await api.get<{data: Zone[]}>('/shipping/zones'); setZones(res.data); } catch {} };
+  const load = async () => { setLoading(true); try { const res = await api.get<{data: Zone[]}>('/shipping/zones'); setZones(res.data); } catch {} finally { setLoading(false); } };
   useEffect(() => { load(); }, []);
 
   const openDialog = (z?: Zone) => { if (z) { setEditing(z); setForm({ name: z.name, pin_codes_from: z.pin_codes_from, pin_codes_to: z.pin_codes_to, state: z.state, delivery_days: String(z.delivery_days), is_active: z.is_active }); } else { setEditing(null); setForm({ name: '', pin_codes_from: '', pin_codes_to: '', state: 'Multiple', delivery_days: '3', is_active: true }); } setDialogOpen(true); };
@@ -36,9 +38,15 @@ const DeliveryZones = () => {
         <div><h1 className="text-2xl font-bold tracking-tight">Delivery Zones</h1><p className="text-muted-foreground">Manage delivery zones and PIN ranges</p></div>
         <Button onClick={() => openDialog()} className="gap-2"><Plus className="h-4 w-4" /> Add Zone</Button>
       </div>
-      <DataTable data={zones} columns={columns} searchPlaceholder="Search zones..." searchFields={['name', 'state']} onRowClick={openDialog}
-        bulkActions={[{ label: 'Delete', icon: <Trash2 className="h-3.5 w-3.5 mr-1" />, variant: 'destructive' as const, confirmTitle: 'Delete', confirmMessage: 'Are you sure you want to delete?', onClick: async (ids) => { for (const id of ids) await api.delete(`/shipping/zones/${id}`); load(); } }]}
-        emptyMessage="No delivery zones" emptyIcon={<MapPin className="h-10 w-10" />} />
+      <div className="rounded-md border p-4">
+        {loading ? (
+          <LoadingSpinner />
+        ) : (
+          <DataTable data={zones} columns={columns} searchPlaceholder="Search zones..." searchFields={['name', 'state']} onRowClick={openDialog}
+            bulkActions={[{ label: 'Delete', icon: <Trash2 className="h-3.5 w-3.5 mr-1" />, variant: 'destructive' as const, confirmTitle: 'Delete', confirmMessage: 'Are you sure you want to delete?', onClick: async (ids) => { for (const id of ids) await api.delete(`/shipping/zones/${id}`); load(); } }]}
+            emptyMessage="No delivery zones" emptyIcon={<MapPin className="h-10 w-10" />} />
+        )}
+      </div>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent><DialogHeader><DialogTitle>{editing ? 'Edit Zone' : 'Add Zone'}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-4">

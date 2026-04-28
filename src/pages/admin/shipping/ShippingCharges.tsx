@@ -6,16 +6,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Switch } from '@/components/ui/switch';
 import { IndianRupee, Plus, Pencil, Trash2 } from 'lucide-react';
 import { api } from '@/lib/api/client';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface Charge { id: string; zone: string; min_weight: number; max_weight: number; base_cost: number; per_kg_cost: number; free_above: number; is_active: boolean; }
 
 const ShippingCharges = () => {
   const [charges, setCharges] = useState<Charge[]>([]);
+  const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Charge | null>(null);
   const [form, setForm] = useState({ zone: '', min_weight: '0', max_weight: '5', base_cost: '', per_kg_cost: '', free_above: '', is_active: true });
 
-  const load = async () => { try { const res = await api.get<{data: Charge[]}>('/shipping/charges'); setCharges(res.data); } catch {} };
+  const load = async () => { setLoading(true); try { const res = await api.get<{data: Charge[]}>('/shipping/charges'); setCharges(res.data); } catch {} finally { setLoading(false); } };
   useEffect(() => { load(); }, []);
 
   const openDialog = (c?: Charge) => { if (c) { setEditing(c); setForm({ zone: c.zone, min_weight: String(c.min_weight), max_weight: String(c.max_weight), base_cost: String(c.base_cost), per_kg_cost: String(c.per_kg_cost), free_above: String(c.free_above), is_active: c.is_active }); } else { setEditing(null); setForm({ zone: '', min_weight: '0', max_weight: '5', base_cost: '', per_kg_cost: '', free_above: '', is_active: true }); } setDialogOpen(true); };
@@ -37,9 +39,15 @@ const ShippingCharges = () => {
         <div><h1 className="text-2xl font-bold tracking-tight">Shipping Charges</h1><p className="text-muted-foreground">Manage shipping rates by zone</p></div>
         <Button onClick={() => openDialog()} className="gap-2"><Plus className="h-4 w-4" /> Add Rate</Button>
       </div>
-      <DataTable data={charges} columns={columns} searchPlaceholder="Search..." searchFields={['zone']} onRowClick={openDialog}
-        bulkActions={[{ label: 'Delete', icon: <Trash2 className="h-3.5 w-3.5 mr-1" />, variant: 'destructive' as const, confirmTitle: 'Delete', confirmMessage: 'Are you sure you want to delete?', onClick: async (ids) => { for (const id of ids) await api.delete(`/shipping/charges/${id}`); load(); } }]}
-        emptyMessage="No shipping charges" emptyIcon={<IndianRupee className="h-10 w-10" />} />
+      <div className="rounded-md border p-4">
+        {loading ? (
+          <LoadingSpinner />
+        ) : (
+          <DataTable data={charges} columns={columns} searchPlaceholder="Search..." searchFields={['zone']} onRowClick={openDialog}
+            bulkActions={[{ label: 'Delete', icon: <Trash2 className="h-3.5 w-3.5 mr-1" />, variant: 'destructive' as const, confirmTitle: 'Delete', confirmMessage: 'Are you sure you want to delete?', onClick: async (ids) => { for (const id of ids) await api.delete(`/shipping/charges/${id}`); load(); } }]}
+            emptyMessage="No shipping charges" emptyIcon={<IndianRupee className="h-10 w-10" />} />
+        )}
+      </div>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent><DialogHeader><DialogTitle>{editing ? 'Edit Rate' : 'Add Rate'}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-4">

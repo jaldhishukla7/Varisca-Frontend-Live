@@ -6,15 +6,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RotateCcw, Download } from 'lucide-react';
 import { exportToCsv } from '@/lib/admin/utils/export';
 import { api } from '@/lib/api/client';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface ReturnItem { id: string; order_number: string; customer_name: string; customer_email: string; reason: string; status: string; request_date: string; processed_date: string | null; }
 
 const Returns = () => {
   const [returns, setReturns] = useState<ReturnItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [detailOpen, setDetailOpen] = useState(false);
   const [selected, setSelected] = useState<ReturnItem | null>(null);
 
-  const load = async () => { try { const res = await api.get<{data: ReturnItem[]}>('/order-ops/returns'); setReturns(res.data); } catch {} };
+  const load = async () => {
+    setLoading(true);
+    try { const res = await api.get<{data: ReturnItem[]}>('/order-ops/returns'); setReturns(res.data); } catch {}
+    finally { setLoading(false); }
+  };
   useEffect(() => { load(); }, []);
 
   const updateStatus = async (id: string, status: string) => {
@@ -36,8 +42,14 @@ const Returns = () => {
         <div><h1 className="text-2xl font-bold tracking-tight">Returns</h1><p className="text-muted-foreground">Manage return requests</p></div>
         <Button variant="outline" onClick={() => exportToCsv(returns.map(r => ({ Order: r.order_number, Customer: r.customer_name, Reason: r.reason, Status: r.status, Date: r.request_date })), 'returns')} className="gap-2"><Download className="h-4 w-4" /> Export</Button>
       </div>
-      <DataTable data={returns} columns={columns} searchPlaceholder="Search returns..." searchFields={['order_number', 'customer_name']}
-        onRowClick={(r) => { setSelected(r); setDetailOpen(true); }} emptyMessage="No return requests" emptyIcon={<RotateCcw className="h-10 w-10" />} />
+      <div className="rounded-md border p-4">
+        {loading ? (
+          <LoadingSpinner />
+        ) : (
+          <DataTable data={returns} columns={columns} searchPlaceholder="Search returns..." searchFields={['order_number', 'customer_name']}
+            onRowClick={(r) => { setSelected(r); setDetailOpen(true); }} emptyMessage="No return requests" emptyIcon={<RotateCcw className="h-10 w-10" />} />
+        )}
+      </div>
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
         <DialogContent>{selected && <><DialogHeader><DialogTitle>Return — {selected.order_number}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-4">

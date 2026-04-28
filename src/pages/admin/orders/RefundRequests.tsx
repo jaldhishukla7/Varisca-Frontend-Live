@@ -6,15 +6,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Banknote, Download } from 'lucide-react';
 import { exportToCsv } from '@/lib/admin/utils/export';
 import { api } from '@/lib/api/client';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface Refund { id: string; order_number: string; customer_name: string; amount: number; reason: string; status: string; request_date: string; processed_date: string | null; }
 
 const RefundRequests = () => {
   const [refunds, setRefunds] = useState<Refund[]>([]);
+  const [loading, setLoading] = useState(true);
   const [detailOpen, setDetailOpen] = useState(false);
   const [selected, setSelected] = useState<Refund | null>(null);
 
-  const load = async () => { try { const res = await api.get<{data: Refund[]}>('/order-ops/refunds'); setRefunds(res.data); } catch {} };
+  const load = async () => {
+    setLoading(true);
+    try { const res = await api.get<{data: Refund[]}>('/order-ops/refunds'); setRefunds(res.data); } catch {}
+    finally { setLoading(false); }
+  };
   useEffect(() => { load(); }, []);
 
   const updateStatus = async (id: string, status: string) => {
@@ -45,8 +51,14 @@ const RefundRequests = () => {
         <Button variant="outline" onClick={() => exportToCsv(refunds.map(r => ({ Order: r.order_number, Customer: r.customer_name, Amount: r.amount, Reason: r.reason, Status: r.status })), 'refunds')} className="gap-2"><Download className="h-4 w-4" /> Export</Button>
       </div>
       <div className="grid grid-cols-4 gap-4">{stats.map(s => (<div key={s.label} className="rounded-xl border border-border/50 bg-card/50 p-4"><p className="text-xs text-muted-foreground">{s.label}</p><p className="text-2xl font-bold">{s.value}</p></div>))}</div>
-      <DataTable data={refunds} columns={columns} searchPlaceholder="Search refunds..." searchFields={['order_number', 'customer_name']}
-        onRowClick={(r) => { setSelected(r); setDetailOpen(true); }} emptyMessage="No refund requests" emptyIcon={<Banknote className="h-10 w-10" />} />
+      <div className="rounded-md border p-4">
+        {loading ? (
+          <LoadingSpinner />
+        ) : (
+          <DataTable data={refunds} columns={columns} searchPlaceholder="Search refunds..." searchFields={['order_number', 'customer_name']}
+            onRowClick={(r) => { setSelected(r); setDetailOpen(true); }} emptyMessage="No refund requests" emptyIcon={<Banknote className="h-10 w-10" />} />
+        )}
+      </div>
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
         <DialogContent>{selected && <><DialogHeader><DialogTitle>Refund — {selected.order_number}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-4">

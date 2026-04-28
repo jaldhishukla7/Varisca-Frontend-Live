@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
-import { Search, Plus, Edit, Trash2, Filter, Upload, X, ImagePlus, Package, Loader2, AlertCircle } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Filter, Upload, X, ImagePlus, Package, AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/admin/StatusBadge';
@@ -32,6 +32,7 @@ import {
   legacyGenderKeyFromParent,
   resolveProductCategoryIds,
 } from '@/lib/admin/catalogOptions';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 /** Women → Kurti / Cord set */
 const WOMEN_KURTI_CORD_SLEEVES = [
@@ -710,6 +711,10 @@ const AdminProducts = () => {
       return next;
     });
   };
+
+  if (loading) {
+    return <LoadingSpinner className="py-20" />;
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">

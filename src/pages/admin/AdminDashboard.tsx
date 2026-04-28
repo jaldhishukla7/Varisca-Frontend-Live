@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { IndianRupee, ShoppingBag, Users, TrendingUp, Package, ArrowUpRight, Loader2, AlertCircle } from 'lucide-react';
+import { IndianRupee, ShoppingBag, Users, TrendingUp, Package, ArrowUpRight, AlertCircle } from 'lucide-react';
 import { StatCard } from '@/components/admin/StatCard';
 import { StatusBadge } from '@/components/admin/StatusBadge';
 import { getOrders, getOrderStats, type Order } from '@/lib/orderStore';
@@ -9,6 +9,7 @@ import { formatPrice } from '@/lib/data';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
 } from 'recharts';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 const AdminDashboard = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -144,11 +145,7 @@ const AdminDashboard = () => {
   ];
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <LoadingSpinner className="py-20" />;
   }
 
   return (

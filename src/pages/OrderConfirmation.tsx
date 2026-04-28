@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { CheckCircle, Package, Mail, ArrowRight, Loader2 } from 'lucide-react';
+import { CheckCircle, Package, Mail, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api/client';
 import { formatPrice } from '@/lib/data';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 const OrderConfirmation = () => {
   const location = useLocation();
@@ -40,11 +41,7 @@ const OrderConfirmation = () => {
   }, [orderNumber, navigate]);
 
   if (!orderNumber || loading) {
-    return (
-      <main className="min-h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin text-accent w-8 h-8" />
-      </main>
-    );
+    return <LoadingSpinner fullScreen />;
   }
 
   const email = orderData?.customer_email || stateEmail || 'your email';

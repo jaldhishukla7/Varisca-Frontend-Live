@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Sparkles, Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { toast } from 'sonner';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 /** Map API/network errors to clear copy (avoid showing “wrong password” for DNS/offline). */
 function formatAdminLoginError(raw: string): string {
@@ -38,6 +39,10 @@ const AdminLogin = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+
+  if (loading) {
+    return <LoadingSpinner fullScreen />;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

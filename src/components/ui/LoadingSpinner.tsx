@@ -1,8 +1,20 @@
 import { Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-export const LoadingSpinner = () => (
-  <div className="flex flex-col items-center justify-center h-full py-10">
-    <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
+interface LoadingSpinnerProps {
+  fullScreen?: boolean;
+  className?: string;
+}
+
+export const LoadingSpinner = ({ fullScreen = false, className }: LoadingSpinnerProps) => (
+  <div
+    className={cn(
+      "flex flex-col items-center justify-center py-10",
+      fullScreen ? "min-h-screen" : "h-full",
+      className,
+    )}
+  >
+    <Loader2 className="mb-2 h-8 w-8 animate-spin text-primary" />
     <p className="text-sm text-muted-foreground">Please wait...</p>
   </div>
 );

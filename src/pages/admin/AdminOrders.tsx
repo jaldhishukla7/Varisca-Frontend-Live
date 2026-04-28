@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { Search, Filter, Download, Eye, Loader2, AlertCircle } from 'lucide-react';
+import { Search, Filter, Download, Eye, AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/admin/StatusBadge';
@@ -14,6 +14,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { formatPrice } from '@/lib/data';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 const AdminOrders = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -114,11 +115,7 @@ const AdminOrders = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <LoadingSpinner className="py-20" />;
   }
 
   return (

@@ -17,6 +17,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -78,6 +79,8 @@ interface DataTableProps<T extends { id: string }> {
   className?: string;
   /** Row class getter */
   rowClassName?: (row: T) => string;
+  /** Loading state for async data fetches */
+  loading?: boolean;
 }
 
 // ─── Component ──────────────────────────────────────────────────────
@@ -99,6 +102,7 @@ export function DataTable<T extends { id: string }>({
   selectable = true,
   className,
   rowClassName,
+  loading = false,
 }: DataTableProps<T>) {
   const getId = useCallback(
     (row: T) => (idAccessor ? idAccessor(row) : row.id),
@@ -218,6 +222,12 @@ export function DataTable<T extends { id: string }>({
 
   return (
     <div className={cn('space-y-4', className)}>
+      {loading ? (
+        <div className="rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm">
+          <LoadingSpinner />
+        </div>
+      ) : (
+        <>
       {/* ─── Toolbar ──────────────────────────────── */}
       <div className="flex flex-wrap items-center gap-3">
         {searchable && (
@@ -470,6 +480,8 @@ export function DataTable<T extends { id: string }>({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      </>
+      )}
     </div>
   );
 }

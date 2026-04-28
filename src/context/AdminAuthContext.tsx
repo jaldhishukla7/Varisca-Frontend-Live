@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { Navigate, useLocation } from 'react-router-dom';
 import { hasPermission, hasAnyPermission, type Permission } from '@/lib/admin/utils/permissions';
 import { authApi, getToken, clearToken } from '@/lib/api/client';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 export interface AdminUser {
   id: string;
@@ -107,14 +108,7 @@ export const AdminProtectedRoute = ({ children }: { children: React.ReactNode })
   const location = useLocation();
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-          <p className="text-muted-foreground text-sm">Loading admin panel...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner fullScreen />;
   }
 
   if (!isAuthenticated) {

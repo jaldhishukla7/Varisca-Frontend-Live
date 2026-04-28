@@ -7,16 +7,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { UserCog, Plus, Pencil, Trash2, Download } from 'lucide-react';
 import { exportToCsv } from '@/lib/admin/utils/export';
 import { api } from '@/lib/api/client';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface AdminUser { id: string; name: string; email: string; role: string; status: string; last_login: string | null; created_at: string; }
 
 const AdminUsers = () => {
   const [users, setUsers] = useState<AdminUser[]>([]);
+  const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<AdminUser | null>(null);
   const [form, setForm] = useState({ name: '', email: '', password: '', role: 'admin', status: 'active' });
 
-  const load = async () => { try { const res = await api.get<{data: AdminUser[]}>('/admin-users'); setUsers(res.data); } catch {} };
+  const load = async () => { setLoading(true); try { const res = await api.get<{data: AdminUser[]}>('/admin-users'); setUsers(res.data); } catch {} finally { setLoading(false); } };
   useEffect(() => { load(); }, []);
 
   const openDialog = (u?: AdminUser) => { if (u) { setEditing(u); setForm({ name: u.name, email: u.email, password: '', role: u.role, status: u.status }); } else { setEditing(null); setForm({ name: '', email: '', password: '', role: 'admin', status: 'active' }); } setDialogOpen(true); };
@@ -39,9 +41,15 @@ const AdminUsers = () => {
           <Button onClick={() => openDialog()} className="gap-2"><Plus className="h-4 w-4" /> Add Admin</Button>
         </div>
       </div>
-      <DataTable data={users} columns={columns} searchPlaceholder="Search admins..." searchFields={['name', 'email']} onRowClick={openDialog}
-        bulkActions={[{ label: 'Delete', icon: <Trash2 className="h-3.5 w-3.5 mr-1" />, variant: 'destructive' as const, confirmTitle: 'Delete', confirmMessage: 'Are you sure you want to delete?', onClick: async (ids) => { for (const id of ids) await api.delete(`/admin-users/${id}`); load(); } }]}
-        emptyMessage="No admin users" emptyIcon={<UserCog className="h-10 w-10" />} />
+      <div className="rounded-md border p-4">
+        {loading ? (
+          <LoadingSpinner />
+        ) : (
+          <DataTable data={users} columns={columns} searchPlaceholder="Search admins..." searchFields={['name', 'email']} onRowClick={openDialog}
+            bulkActions={[{ label: 'Delete', icon: <Trash2 className="h-3.5 w-3.5 mr-1" />, variant: 'destructive' as const, confirmTitle: 'Delete', confirmMessage: 'Are you sure you want to delete?', onClick: async (ids) => { for (const id of ids) await api.delete(`/admin-users/${id}`); load(); } }]}
+            emptyMessage="No admin users" emptyIcon={<UserCog className="h-10 w-10" />} />
+        )}
+      </div>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent><DialogHeader><DialogTitle>{editing ? 'Edit Admin' : 'Add Admin'}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-4">

@@ -8,16 +8,19 @@ import { api } from '@/lib/api/client';
 import { getCustomOrders, updateCustomOrder, type CustomOrderRecord } from '@/lib/customOrderStore';
 import { addOrder, type Order } from '@/lib/orderStore';
 import { toast } from 'sonner';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const CustomOrders = () => {
   const [orders, setOrders] = useState<CustomOrderRecord[]>([]);
+  const [loading, setLoading] = useState(true);
   const [detailOpen, setDetailOpen] = useState(false);
   const [selected, setSelected] = useState<CustomOrderRecord | null>(null);
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
 
   const load = async (): Promise<CustomOrderRecord[]> => {
+    setLoading(true);
     try {
       const r = await api.get<{ data: CustomOrderRecord[] }>('/custom-orders');
       const list = Array.isArray(r.data) ? r.data : [];
@@ -27,6 +30,8 @@ const CustomOrders = () => {
       const fallback = getCustomOrders();
       setOrders(fallback);
       return fallback;
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -225,18 +230,24 @@ const CustomOrders = () => {
         </Button>
       </div>
 
-      <DataTable
-        data={orders}
-        columns={columns}
-        searchPlaceholder="Search custom orders..."
-        searchFields={['customer.name', 'customer.phone', 'productType', 'variety']}
-        emptyMessage="No custom orders yet"
-        emptyIcon={<Shirt className="h-10 w-10" />}
-        onRowClick={(row) => {
-          setSelected(row);
-          setDetailOpen(true);
-        }}
-      />
+      <div className="rounded-md border p-4">
+        {loading ? (
+          <LoadingSpinner />
+        ) : (
+          <DataTable
+            data={orders}
+            columns={columns}
+            searchPlaceholder="Search custom orders..."
+            searchFields={['customer.name', 'customer.phone', 'productType', 'variety']}
+            emptyMessage="No custom orders yet"
+            emptyIcon={<Shirt className="h-10 w-10" />}
+            onRowClick={(row) => {
+              setSelected(row);
+              setDetailOpen(true);
+            }}
+          />
+        )}
+      </div>
 
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
         <DialogContent className="max-w-xl">
@@ -351,4 +362,3 @@ const CustomOrders = () => {
 };
 
 export default CustomOrders;
-

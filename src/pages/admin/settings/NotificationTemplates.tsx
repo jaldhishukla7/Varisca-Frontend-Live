@@ -8,16 +8,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Bell, Plus, Pencil, Trash2 } from 'lucide-react';
 import { api } from '@/lib/api/client';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface Template { id: string; name: string; type: string; event: string; subject: string; body: string; is_active: boolean; }
 
 const NotificationTemplates = () => {
   const [templates, setTemplates] = useState<Template[]>([]);
+  const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Template | null>(null);
   const [form, setForm] = useState({ name: '', type: 'email', event: '', subject: '', body: '', is_active: true });
 
-  const load = async () => { try { const res = await api.get<{data: Template[]}>('/settings/notifications'); setTemplates(res.data); } catch {} };
+  const load = async () => { setLoading(true); try { const res = await api.get<{data: Template[]}>('/settings/notifications'); setTemplates(res.data); } catch {} finally { setLoading(false); } };
   useEffect(() => { load(); }, []);
 
   const openDialog = (t?: Template) => { if (t) { setEditing(t); setForm({ name: t.name, type: t.type, event: t.event, subject: t.subject, body: t.body, is_active: t.is_active }); } else { setEditing(null); setForm({ name: '', type: 'email', event: '', subject: '', body: '', is_active: true }); } setDialogOpen(true); };
@@ -37,9 +39,15 @@ const NotificationTemplates = () => {
         <div><h1 className="text-2xl font-bold tracking-tight">Notification Templates</h1><p className="text-muted-foreground">Email, SMS & push templates</p></div>
         <Button onClick={() => openDialog()} className="gap-2"><Plus className="h-4 w-4" /> Add Template</Button>
       </div>
-      <DataTable data={templates} columns={columns} searchPlaceholder="Search templates..." searchFields={['name', 'event']} onRowClick={openDialog}
-        bulkActions={[{ label: 'Delete', icon: <Trash2 className="h-3.5 w-3.5 mr-1" />, variant: 'destructive' as const, confirmTitle: 'Delete', confirmMessage: 'Are you sure you want to delete?', onClick: async (ids) => { for (const id of ids) await api.delete(`/settings/notifications/${id}`); load(); } }]}
-        emptyMessage="No templates" emptyIcon={<Bell className="h-10 w-10" />} />
+      <div className="rounded-md border p-4">
+        {loading ? (
+          <LoadingSpinner />
+        ) : (
+          <DataTable data={templates} columns={columns} searchPlaceholder="Search templates..." searchFields={['name', 'event']} onRowClick={openDialog}
+            bulkActions={[{ label: 'Delete', icon: <Trash2 className="h-3.5 w-3.5 mr-1" />, variant: 'destructive' as const, confirmTitle: 'Delete', confirmMessage: 'Are you sure you want to delete?', onClick: async (ids) => { for (const id of ids) await api.delete(`/settings/notifications/${id}`); load(); } }]}
+            emptyMessage="No templates" emptyIcon={<Bell className="h-10 w-10" />} />
+        )}
+      </div>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent><DialogHeader><DialogTitle>{editing ? 'Edit Template' : 'Add Template'}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-4">

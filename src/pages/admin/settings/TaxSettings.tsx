@@ -6,16 +6,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Switch } from '@/components/ui/switch';
 import { Receipt, Plus, Pencil, Trash2 } from 'lucide-react';
 import { api } from '@/lib/api/client';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface TaxRule { id: string; name: string; rate: number; region: string; category: string; is_active: boolean; }
 
 const TaxSettings = () => {
   const [rules, setRules] = useState<TaxRule[]>([]);
+  const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<TaxRule | null>(null);
   const [form, setForm] = useState({ name: '', rate: '', region: 'India', category: 'All', is_active: true });
 
-  const load = async () => { try { const res = await api.get<{data: TaxRule[]}>('/settings/tax'); setRules(res.data); } catch {} };
+  const load = async () => { setLoading(true); try { const res = await api.get<{data: TaxRule[]}>('/settings/tax'); setRules(res.data); } catch {} finally { setLoading(false); } };
   useEffect(() => { load(); }, []);
 
   const openDialog = (r?: TaxRule) => { if (r) { setEditing(r); setForm({ name: r.name, rate: String(r.rate), region: r.region, category: r.category, is_active: r.is_active }); } else { setEditing(null); setForm({ name: '', rate: '', region: 'India', category: 'All', is_active: true }); } setDialogOpen(true); };
@@ -36,9 +38,15 @@ const TaxSettings = () => {
         <div><h1 className="text-2xl font-bold tracking-tight">Tax Settings</h1><p className="text-muted-foreground">Manage GST and tax rules</p></div>
         <Button onClick={() => openDialog()} className="gap-2"><Plus className="h-4 w-4" /> Add Rule</Button>
       </div>
-      <DataTable data={rules} columns={columns} searchPlaceholder="Search tax rules..." searchFields={['name', 'region']} onRowClick={openDialog}
-        bulkActions={[{ label: 'Delete', icon: <Trash2 className="h-3.5 w-3.5 mr-1" />, variant: 'destructive' as const, confirmTitle: 'Delete', confirmMessage: 'Are you sure you want to delete?', onClick: async (ids) => { for (const id of ids) await api.delete(`/settings/tax/${id}`); load(); } }]}
-        emptyMessage="No tax rules" emptyIcon={<Receipt className="h-10 w-10" />} />
+      <div className="rounded-md border p-4">
+        {loading ? (
+          <LoadingSpinner />
+        ) : (
+          <DataTable data={rules} columns={columns} searchPlaceholder="Search tax rules..." searchFields={['name', 'region']} onRowClick={openDialog}
+            bulkActions={[{ label: 'Delete', icon: <Trash2 className="h-3.5 w-3.5 mr-1" />, variant: 'destructive' as const, confirmTitle: 'Delete', confirmMessage: 'Are you sure you want to delete?', onClick: async (ids) => { for (const id of ids) await api.delete(`/settings/tax/${id}`); load(); } }]}
+            emptyMessage="No tax rules" emptyIcon={<Receipt className="h-10 w-10" />} />
+        )}
+      </div>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent><DialogHeader><DialogTitle>{editing ? 'Edit Tax Rule' : 'Add Tax Rule'}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-4">

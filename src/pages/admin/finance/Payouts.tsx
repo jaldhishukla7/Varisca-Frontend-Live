@@ -7,16 +7,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Wallet, Plus, Pencil, Trash2, Download } from 'lucide-react';
 import { exportToCsv } from '@/lib/admin/utils/export';
 import { api } from '@/lib/api/client';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface Payout { id: string; partner: string; amount: number; status: string; method: string; reference: string; created_at: string; }
 
 const Payouts = () => {
   const [payouts, setPayouts] = useState<Payout[]>([]);
+  const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Payout | null>(null);
   const [form, setForm] = useState({ partner: '', amount: '', status: 'pending', method: 'Bank Transfer', reference: '' });
 
-  const load = async () => { try { const res = await api.get<{data: Payout[]}>('/finance/payouts'); setPayouts(res.data); } catch {} };
+  const load = async () => { setLoading(true); try { const res = await api.get<{data: Payout[]}>('/finance/payouts'); setPayouts(res.data); } catch {} finally { setLoading(false); } };
   useEffect(() => { load(); }, []);
 
   const openDialog = (p?: Payout) => { if (p) { setEditing(p); setForm({ partner: p.partner, amount: String(p.amount), status: p.status, method: p.method, reference: p.reference }); } else { setEditing(null); setForm({ partner: '', amount: '', status: 'pending', method: 'Bank Transfer', reference: '' }); } setDialogOpen(true); };
@@ -40,9 +42,15 @@ const Payouts = () => {
           <Button onClick={() => openDialog()} className="gap-2"><Plus className="h-4 w-4" /> New Payout</Button>
         </div>
       </div>
-      <DataTable data={payouts} columns={columns} searchPlaceholder="Search payouts..." searchFields={['partner', 'reference']} onRowClick={openDialog}
-        bulkActions={[{ label: 'Delete', icon: <Trash2 className="h-3.5 w-3.5 mr-1" />, variant: 'destructive' as const, confirmTitle: 'Delete', confirmMessage: 'Are you sure you want to delete?', onClick: async (ids) => { for (const id of ids) await api.delete(`/finance/payouts/${id}`); load(); } }]}
-        emptyMessage="No payouts" emptyIcon={<Wallet className="h-10 w-10" />} />
+      <div className="rounded-md border p-4">
+        {loading ? (
+          <LoadingSpinner />
+        ) : (
+          <DataTable data={payouts} columns={columns} searchPlaceholder="Search payouts..." searchFields={['partner', 'reference']} onRowClick={openDialog}
+            bulkActions={[{ label: 'Delete', icon: <Trash2 className="h-3.5 w-3.5 mr-1" />, variant: 'destructive' as const, confirmTitle: 'Delete', confirmMessage: 'Are you sure you want to delete?', onClick: async (ids) => { for (const id of ids) await api.delete(`/finance/payouts/${id}`); load(); } }]}
+            emptyMessage="No payouts" emptyIcon={<Wallet className="h-10 w-10" />} />
+        )}
+      </div>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent><DialogHeader><DialogTitle>{editing ? 'Edit Payout' : 'New Payout'}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-4">

@@ -22,6 +22,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { api } from '@/lib/api/client';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import {
   type CatalogCategoryRow,
   type CatalogAttributeRow,
@@ -807,7 +808,13 @@ const AdminProducts = () => {
               </tr>
             </thead>
             <tbody>
-              {paginatedProducts.length === 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan={8} className="px-4 py-10">
+                    <LoadingSpinner />
+                  </td>
+                </tr>
+              ) : paginatedProducts.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-4 py-16 text-center">
                     <Package className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />

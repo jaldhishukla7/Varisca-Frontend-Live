@@ -7,16 +7,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Ticket, Plus, Pencil, Trash2, Download } from 'lucide-react';
 import { exportToCsv } from '@/lib/admin/utils/export';
 import { api } from '@/lib/api/client';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface Coupon { id: string; code: string; type: string; value: number; min_order: number; max_discount: number; usage_limit: number; used_count: number; status: string; start_date: string; end_date: string; }
 
 const Coupons = () => {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Coupon | null>(null);
   const [form, setForm] = useState({ code: '', type: 'percentage', value: '', min_order: '', max_discount: '', usage_limit: '100', status: 'active', start_date: '', end_date: '' });
 
-  const load = async () => { try { const res = await api.get<{data: Coupon[]}>('/marketing/coupons'); setCoupons(res.data); } catch {} };
+  const load = async () => { setLoading(true); try { const res = await api.get<{data: Coupon[]}>('/marketing/coupons'); setCoupons(res.data); } catch {} finally { setLoading(false); } };
   useEffect(() => { load(); }, []);
 
   const openDialog = (c?: Coupon) => { if (c) { setEditing(c); setForm({ code: c.code, type: c.type, value: String(c.value), min_order: String(c.min_order), max_discount: String(c.max_discount), usage_limit: String(c.usage_limit), status: c.status, start_date: c.start_date || '', end_date: c.end_date || '' }); } else { setEditing(null); setForm({ code: '', type: 'percentage', value: '', min_order: '', max_discount: '', usage_limit: '100', status: 'active', start_date: '', end_date: '' }); } setDialogOpen(true); };
@@ -40,9 +42,15 @@ const Coupons = () => {
           <Button onClick={() => openDialog()} className="gap-2"><Plus className="h-4 w-4" /> Add Coupon</Button>
         </div>
       </div>
-      <DataTable data={coupons} columns={columns} searchPlaceholder="Search coupons..." searchFields={['code']} onRowClick={openDialog}
-        bulkActions={[{ label: 'Delete', icon: <Trash2 className="h-3.5 w-3.5 mr-1" />, variant: 'destructive' as const, confirmTitle: 'Delete', confirmMessage: 'Are you sure you want to delete?', onClick: async (ids) => { await api.post('/marketing/coupons/bulk-delete', { ids }); load(); } }]}
-        emptyMessage="No coupons" emptyIcon={<Ticket className="h-10 w-10" />} />
+      <div className="rounded-md border p-4">
+        {loading ? (
+          <LoadingSpinner />
+        ) : (
+          <DataTable data={coupons} columns={columns} searchPlaceholder="Search coupons..." searchFields={['code']} onRowClick={openDialog}
+            bulkActions={[{ label: 'Delete', icon: <Trash2 className="h-3.5 w-3.5 mr-1" />, variant: 'destructive' as const, confirmTitle: 'Delete', confirmMessage: 'Are you sure you want to delete?', onClick: async (ids) => { await api.post('/marketing/coupons/bulk-delete', { ids }); load(); } }]}
+            emptyMessage="No coupons" emptyIcon={<Ticket className="h-10 w-10" />} />
+        )}
+      </div>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent><DialogHeader><DialogTitle>{editing ? 'Edit Coupon' : 'Add Coupon'}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-4">

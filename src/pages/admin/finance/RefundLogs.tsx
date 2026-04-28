@@ -4,12 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Receipt, Download } from 'lucide-react';
 import { exportToCsv } from '@/lib/admin/utils/export';
 import { api } from '@/lib/api/client';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface RefundLog { id: string; order_number: string; customer_name: string; amount: number; status: string; type: string; created_at: string; }
 
 const RefundLogs = () => {
   const [logs, setLogs] = useState<RefundLog[]>([]);
-  const load = async () => { try { const res = await api.get<{data: RefundLog[]}>('/finance/transactions', { status: 'refunded' }); setLogs(res.data); } catch {} };
+  const [loading, setLoading] = useState(true);
+  const load = async () => { setLoading(true); try { const res = await api.get<{data: RefundLog[]}>('/finance/transactions', { status: 'refunded' }); setLogs(res.data); } catch {} finally { setLoading(false); } };
   useEffect(() => { load(); }, []);
 
   const columns: Column<RefundLog>[] = [
@@ -26,7 +28,13 @@ const RefundLogs = () => {
         <div><h1 className="text-2xl font-bold tracking-tight">Refund Logs</h1><p className="text-muted-foreground">History of processed refunds</p></div>
         <Button variant="outline" onClick={() => exportToCsv(logs.map(l => ({ Order: l.order_number, Customer: l.customer_name, Amount: l.amount, Status: l.status })), 'refund-logs')} className="gap-2"><Download className="h-4 w-4" /> Export</Button>
       </div>
-      <DataTable data={logs} columns={columns} searchPlaceholder="Search refund logs..." searchFields={['order_number', 'customer_name']} emptyMessage="No refund logs" emptyIcon={<Receipt className="h-10 w-10" />} />
+      <div className="rounded-md border p-4">
+        {loading ? (
+          <LoadingSpinner />
+        ) : (
+          <DataTable data={logs} columns={columns} searchPlaceholder="Search refund logs..." searchFields={['order_number', 'customer_name']} emptyMessage="No refund logs" emptyIcon={<Receipt className="h-10 w-10" />} />
+        )}
+      </div>
     </div>
   );
 };

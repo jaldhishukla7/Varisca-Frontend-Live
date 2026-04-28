@@ -6,16 +6,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Switch } from '@/components/ui/switch';
 import { Truck, Plus, Pencil, Trash2 } from 'lucide-react';
 import { api } from '@/lib/api/client';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface Partner { id: string; name: string; code: string; phone: string; email: string; zones: string[]; is_active: boolean; total_deliveries: number; rating: number; }
 
 const DeliveryPartners = () => {
   const [partners, setPartners] = useState<Partner[]>([]);
+  const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Partner | null>(null);
   const [form, setForm] = useState({ name: '', code: '', phone: '', email: '', zones: '', is_active: true });
 
-  const load = async () => { try { const res = await api.get<{data: Partner[]}>('/shipping/partners'); setPartners(res.data); } catch {} };
+  const load = async () => { setLoading(true); try { const res = await api.get<{data: Partner[]}>('/shipping/partners'); setPartners(res.data); } catch {} finally { setLoading(false); } };
   useEffect(() => { load(); }, []);
 
   const openDialog = (p?: Partner) => { if (p) { setEditing(p); setForm({ name: p.name, code: p.code, phone: p.phone, email: p.email, zones: (p.zones || []).join(', '), is_active: p.is_active }); } else { setEditing(null); setForm({ name: '', code: '', phone: '', email: '', zones: '', is_active: true }); } setDialogOpen(true); };
@@ -37,9 +39,15 @@ const DeliveryPartners = () => {
         <div><h1 className="text-2xl font-bold tracking-tight">Delivery Partners</h1><p className="text-muted-foreground">Manage logistics partners</p></div>
         <Button onClick={() => openDialog()} className="gap-2"><Plus className="h-4 w-4" /> Add Partner</Button>
       </div>
-      <DataTable data={partners} columns={columns} searchPlaceholder="Search partners..." searchFields={['name', 'code']} onRowClick={openDialog}
-        bulkActions={[{ label: 'Delete', icon: <Trash2 className="h-3.5 w-3.5 mr-1" />, variant: 'destructive' as const, confirmTitle: 'Delete', confirmMessage: 'Are you sure you want to delete?', onClick: async (ids) => { for (const id of ids) await api.delete(`/shipping/partners/${id}`); load(); } }]}
-        emptyMessage="No delivery partners" emptyIcon={<Truck className="h-10 w-10" />} />
+      <div className="rounded-md border p-4">
+        {loading ? (
+          <LoadingSpinner />
+        ) : (
+          <DataTable data={partners} columns={columns} searchPlaceholder="Search partners..." searchFields={['name', 'code']} onRowClick={openDialog}
+            bulkActions={[{ label: 'Delete', icon: <Trash2 className="h-3.5 w-3.5 mr-1" />, variant: 'destructive' as const, confirmTitle: 'Delete', confirmMessage: 'Are you sure you want to delete?', onClick: async (ids) => { for (const id of ids) await api.delete(`/shipping/partners/${id}`); load(); } }]}
+            emptyMessage="No delivery partners" emptyIcon={<Truck className="h-10 w-10" />} />
+        )}
+      </div>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent><DialogHeader><DialogTitle>{editing ? 'Edit Partner' : 'Add Partner'}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-4">

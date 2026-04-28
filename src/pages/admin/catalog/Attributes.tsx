@@ -9,7 +9,7 @@ import { SlidersHorizontal, Plus, Pencil, Trash2 } from 'lucide-react';
 import { api } from '@/lib/api/client';
 import { toast } from 'sonner';
 import type { CatalogCategoryRow } from '@/lib/admin/catalogOptions';
-import { Loader2 } from "lucide-react";
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 const SCOPE_NONE = '__none__';
 
@@ -241,35 +241,32 @@ const Attributes = () => {
         emptyIcon={<SlidersHorizontal className="h-10 w-10" />}
       /> */}
 
-      <div className="relative border rounded-md">
-        <DataTable
-          data={attrs}
-          columns={columns}
-          searchPlaceholder="Search attributes..."
-          searchFields={['name']}
-          onRowClick={openDialog}
-          bulkActions={[
-            {
-            label: 'Delete',
-            icon: <Trash2 className="h-3.5 w-3.5 mr-1" />,
-            variant: 'destructive' as const,
-            confirmTitle: 'Delete',
-            confirmMessage: 'Are you sure you want to delete?',
-            onClick: async (ids) => {
-              await api.post('/attributes/bulk-delete', { ids });
-              load();
-            },
-          },
-        ]}
-          emptyMessage="No attributes"
-          emptyIcon={<SlidersHorizontal className="h-10 w-10" />}
-        />
-
-        {loading && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/70">
-            <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
-            <p className="text-sm text-muted-foreground">Please wait...</p>
-          </div>
+      <div className="border rounded-md p-4">
+        {loading ? (
+          <LoadingSpinner />
+        ) : (
+          <DataTable
+            data={attrs}
+            columns={columns}
+            searchPlaceholder="Search attributes..."
+            searchFields={['name']}
+            onRowClick={openDialog}
+            bulkActions={[
+              {
+                label: 'Delete',
+                icon: <Trash2 className="h-3.5 w-3.5 mr-1" />,
+                variant: 'destructive' as const,
+                confirmTitle: 'Delete',
+                confirmMessage: 'Are you sure you want to delete?',
+                onClick: async (ids) => {
+                  await api.post('/attributes/bulk-delete', { ids });
+                  load();
+                },
+              },
+            ]}
+            emptyMessage="No attributes"
+            emptyIcon={<SlidersHorizontal className="h-10 w-10" />}
+          />
         )}
       </div>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { IndianRupee, ShoppingBag, Users, TrendingUp, Package, ArrowUpRight, Loader2, AlertCircle } from 'lucide-react';
+import { IndianRupee, ShoppingBag, Users, TrendingUp, Package, ArrowUpRight, AlertCircle } from 'lucide-react';
 import { StatCard } from '@/components/admin/StatCard';
 import { StatusBadge } from '@/components/admin/StatusBadge';
 import { getOrders, getOrderStats, type Order } from '@/lib/orderStore';
@@ -9,6 +9,7 @@ import { formatPrice } from '@/lib/data';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
 } from 'recharts';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 const AdminDashboard = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -143,14 +144,6 @@ const AdminDashboard = () => {
     },
   ];
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6 animate-fade-in">
       {error && (
@@ -164,6 +157,13 @@ const AdminDashboard = () => {
         <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-sm text-muted-foreground mt-1">Welcome back! Here's an overview of your store.</p>
       </div>
+
+      {loading ? (
+        <div className="rounded-xl border border-border/50 bg-card p-6">
+          <LoadingSpinner />
+        </div>
+      ) : (
+        <>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -310,6 +310,8 @@ const AdminDashboard = () => {
           </div>
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 };

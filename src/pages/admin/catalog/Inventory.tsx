@@ -9,6 +9,7 @@ import { Package, AlertTriangle, Download, Plus, Trash2 } from 'lucide-react';
 import { exportToCsv } from '@/lib/admin/utils/export';
 import { api } from '@/lib/api/client';
 import { toast } from 'sonner';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface InventoryItem { id: string; name: string; sku: string; category: string; inventory: number; price: number; status: string; image: string; }
 interface InvStats { total: string; total_units: string; low_stock: string; out_of_stock: string; }
@@ -24,8 +25,10 @@ const Inventory = () => {
   const [adjustForm, setAdjustForm] = useState({ type: 'in', quantity: '', reason: '' });
   const [addForm, setAddForm] = useState({ product_id: '', quantity: '', reason: '' });
   const [deleteConfirm, setDeleteConfirm] = useState<InventoryItem | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const load = async () => {
+    setLoading(true);
     try {
       const [inv, st, prods] = await Promise.all([
         api.get<{data: InventoryItem[]}>('/inventory', { filter: filter !== 'all' ? filter : undefined }),
@@ -34,7 +37,11 @@ const Inventory = () => {
       ]);
       setItems(inv.data); setStats(st);
       setProducts(prods.data || []);
-    } catch {}
+    } catch {
+      //
+    } finally {
+      setLoading(false);
+    }
   };
   useEffect(() => { load(); }, [filter]);
 
@@ -92,7 +99,13 @@ const Inventory = () => {
       <div className="flex gap-2">
         {['all', 'low', 'out'].map(f => (<Button key={f} size="sm" variant={filter === f ? 'default' : 'outline'} onClick={() => setFilter(f)} className="capitalize">{f === 'out' ? 'Out of Stock' : f === 'low' ? 'Low Stock' : 'All'}</Button>))}
       </div>
-      <DataTable data={items} columns={columns} searchPlaceholder="Search products..." searchFields={['name', 'sku']} emptyMessage="No inventory items" emptyIcon={<Package className="h-10 w-10" />} />
+      <div className="rounded-md border p-4">
+        {loading ? (
+          <LoadingSpinner />
+        ) : (
+          <DataTable data={items} columns={columns} searchPlaceholder="Search products..." searchFields={['name', 'sku']} emptyMessage="No inventory items" emptyIcon={<Package className="h-10 w-10" />} />
+        )}
+      </div>
       <Dialog open={adjustOpen} onOpenChange={setAdjustOpen}>
         <DialogContent><DialogHeader><DialogTitle>Adjust Stock — {selected?.name}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-4">

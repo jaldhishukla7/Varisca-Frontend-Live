@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { Search, Filter, Download, Eye, Loader2, AlertCircle } from 'lucide-react';
+import { Search, Filter, Download, Eye, AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/admin/StatusBadge';
@@ -14,6 +14,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { formatPrice } from '@/lib/data';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 const AdminOrders = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -113,14 +114,6 @@ const AdminOrders = () => {
     } catch { toast.error('Failed to update orders'); }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6 animate-fade-in">
       {error && (
@@ -184,7 +177,9 @@ const AdminOrders = () => {
 
       {/* Table */}
       <div className="rounded-xl border border-border/50 bg-card overflow-hidden">
-        {orders.length === 0 ? (
+        {loading ? (
+          <LoadingSpinner />
+        ) : orders.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
               <Eye className="h-8 w-8 text-muted-foreground/50" />

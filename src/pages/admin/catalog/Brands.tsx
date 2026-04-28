@@ -9,17 +9,29 @@ import { Tag, Plus, Pencil, Trash2, Download } from 'lucide-react';
 import { exportToCsv } from '@/lib/admin/utils/export';
 import { api } from '@/lib/api/client';
 import { toast } from 'sonner';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface Brand { id: string; name: string; slug: string; logo: string; description: string; website: string; product_count: number; status: string; created_at: string; }
 
 const Brands = () => {
   const [brands, setBrands] = useState<Brand[]>([]);
+  const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Brand | null>(null);
   const [form, setForm] = useState({ name: '', slug: '', description: '', website: '', status: 'active' });
   const [deleteConfirm, setDeleteConfirm] = useState<Brand | null>(null);
 
-  const load = async () => { try { const res = await api.get<{data: Brand[]}>('/brands'); setBrands(res.data); } catch {} };
+  const load = async () => {
+    setLoading(true);
+    try {
+      const res = await api.get<{ data: Brand[] }>('/brands');
+      setBrands(res.data);
+    } catch {
+      //
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => { load(); }, []);
 
   const openDialog = (b?: Brand) => {
@@ -64,10 +76,16 @@ const Brands = () => {
           <Button onClick={() => openDialog()} className="gap-2"><Plus className="h-4 w-4" /> Add Brand</Button>
         </div>
       </div>
-      <DataTable data={brands} columns={columns} searchPlaceholder="Search brands..." searchFields={['name']} onRowClick={openDialog}
-        bulkActions={[{ label: 'Delete', icon: <Trash2 className="h-3.5 w-3.5 mr-1" />, variant: 'destructive' as const, confirmTitle: 'Delete', confirmMessage: 'Are you sure you want to delete?', onClick: async (ids) => { await api.post('/brands/bulk-delete', { ids }); load(); } }]}
-        emptyMessage="No brands" emptyIcon={<Tag className="h-10 w-10" />}
-      />
+      <div className="rounded-md border p-4">
+        {loading ? (
+          <LoadingSpinner />
+        ) : (
+          <DataTable data={brands} columns={columns} searchPlaceholder="Search brands..." searchFields={['name']} onRowClick={openDialog}
+            bulkActions={[{ label: 'Delete', icon: <Trash2 className="h-3.5 w-3.5 mr-1" />, variant: 'destructive' as const, confirmTitle: 'Delete', confirmMessage: 'Are you sure you want to delete?', onClick: async (ids) => { await api.post('/brands/bulk-delete', { ids }); load(); } }]}
+            emptyMessage="No brands" emptyIcon={<Tag className="h-10 w-10" />}
+          />
+        )}
+      </div>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent><DialogHeader><DialogTitle>{editing ? 'Edit Brand' : 'Add Brand'}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-4">

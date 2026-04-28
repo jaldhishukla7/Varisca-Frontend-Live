@@ -9,6 +9,7 @@ import { FolderTree, Plus, Pencil, Trash2, Download } from 'lucide-react';
 import { exportToCsv } from '@/lib/admin/utils/export';
 import { api } from '@/lib/api/client';
 import { toast } from 'sonner';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface Category { id: string; name: string; slug: string; description: string; parent_id: string | null; product_count: number; status: string; created_at: string; }
 
@@ -75,10 +76,16 @@ const Categories = () => {
         </div>
       </div>
       <div className="grid grid-cols-4 gap-4">{stats.map(s => (<div key={s.label} className="rounded-xl border border-border/50 bg-card/50 p-4"><p className="text-xs text-muted-foreground">{s.label}</p><p className="text-2xl font-bold">{s.value}</p></div>))}</div>
-      <DataTable data={categories} columns={columns} searchPlaceholder="Search categories..." searchFields={['name', 'slug']} onRowClick={openDialog}
-        bulkActions={[{ label: 'Delete', icon: <Trash2 className="h-3.5 w-3.5 mr-1" />, variant: 'destructive' as const, confirmTitle: 'Delete', confirmMessage: 'Are you sure you want to delete?', onClick: async (ids) => { await api.post('/categories/bulk-delete', { ids }); load(); } }]}
-        emptyMessage="No categories" emptyIcon={<FolderTree className="h-10 w-10" />}
-      />
+      <div className="rounded-md border p-4">
+        {loading ? (
+          <LoadingSpinner />
+        ) : (
+          <DataTable data={categories} columns={columns} searchPlaceholder="Search categories..." searchFields={['name', 'slug']} onRowClick={openDialog}
+            bulkActions={[{ label: 'Delete', icon: <Trash2 className="h-3.5 w-3.5 mr-1" />, variant: 'destructive' as const, confirmTitle: 'Delete', confirmMessage: 'Are you sure you want to delete?', onClick: async (ids) => { await api.post('/categories/bulk-delete', { ids }); load(); } }]}
+            emptyMessage="No categories" emptyIcon={<FolderTree className="h-10 w-10" />}
+          />
+        )}
+      </div>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent><DialogHeader><DialogTitle>{editing ? 'Edit Category' : 'Add Category'}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-4">

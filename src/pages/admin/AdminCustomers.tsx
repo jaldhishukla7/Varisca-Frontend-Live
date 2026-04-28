@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { Search, Eye, Mail, ShoppingBag, Loader2, AlertCircle } from 'lucide-react';
+import { Search, Eye, Mail, ShoppingBag, AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { getCustomers, type Customer } from '@/lib/customerStore';
@@ -10,6 +10,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/admin/StatusBadge';
 import { formatPrice } from '@/lib/data';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 const AdminCustomers = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -97,14 +98,6 @@ const AdminCustomers = () => {
     : [];
   const selectedStats = selectedCustomer ? getStats(selectedCustomer.email) : { orders_count: 0, total_spent: 0 };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6 animate-fade-in">
       {error && (
@@ -132,7 +125,9 @@ const AdminCustomers = () => {
 
       {/* Table */}
       <div className="rounded-xl border border-border/50 bg-card overflow-hidden">
-        {customers.length === 0 ? (
+        {loading ? (
+          <LoadingSpinner />
+        ) : customers.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
               <ShoppingBag className="h-8 w-8 text-muted-foreground/50" />
